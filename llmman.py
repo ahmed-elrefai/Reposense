@@ -9,6 +9,7 @@ REQUIRED_KEYS = {
     "status", "repo", "goal", "inputs", "outputs",
     "how_it_works", "stack", "confidence", "gaps", "sources"
 }
+LLM_TIMEOUT_SECONDS = float(os.getenv("LLM_TIMEOUT_SECONDS", "90"))
 
 
 def _extract_json(text: str) -> dict:
@@ -26,7 +27,7 @@ def generate_report(prompt: str, model: str = "openai/gpt-oss-120b") -> dict:
     if not api_key:
         raise RuntimeError("GROQ_API_KEY missing")
 
-    client = Groq(api_key=api_key)
+    client = Groq(api_key=api_key, timeout=LLM_TIMEOUT_SECONDS)
     resp = client.chat.completions.create(
         model=model,
         messages=[

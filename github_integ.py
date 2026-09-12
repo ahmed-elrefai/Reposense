@@ -5,6 +5,7 @@ import urllib
 import json
 from models import ContextPack, GitHubResponse, StdRequest
 load_dotenv("./secrets/.env")
+GITHUB_TIMEOUT_SECONDS = float(os.getenv("GITHUB_TIMEOUT_SECONDS", "15"))
 IGNORE_DIRS = {
     ".git", ".svn", ".hg",
     "node_modules", "bower_components",
@@ -51,7 +52,9 @@ class CustomGithubClient:
         self.headers["Accept"] = "application/vnd.github.raw"  # this gets files as text.
         file_url = f"https://api.github.com/repos/{owner}/{repo}/contents/{file_path}"
 
-        file_response = requests.get(file_url, headers=self.headers)
+        file_response = requests.get(
+            file_url, headers=self.headers, timeout=GITHUB_TIMEOUT_SECONDS
+        )
         if file_response.status_code == 200:
             file_text = file_response.text
             if len(file_text) > max_chars:
@@ -128,7 +131,7 @@ class CustomGithubClient:
         # gets the default branch for the repo
         url = f"https://api.github.com/repos/{owner}/{repo}"
         self.headers["Accept"] = "application/vnd.github+json"
-        response = requests.get(url, headers=self.headers)
+        response = requests.get(url, headers=self.headers, timeout=GITHUB_TIMEOUT_SECONDS)
         default_branch = response.json()
         if default_branch:
             default_branch = default_branch["default_branch"]
@@ -138,7 +141,9 @@ class CustomGithubClient:
         # fetches the tree of the default branch 
         tree_url = f"https://api.github.com/repos/{owner}/{repo}/git/trees/{default_branch}?recursive={recursive}"
         self.headers["Accept"] = "application/vnd.github+json"
-        response = requests.get(tree_url, headers=self.headers)
+        response = requests.get(
+            tree_url, headers=self.headers, timeout=GITHUB_TIMEOUT_SECONDS
+        )
         if response.status_code == 200:
             tree = json.loads(response.text).get("tree", [])
             treecontent = []
